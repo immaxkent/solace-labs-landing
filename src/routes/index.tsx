@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ContourField } from "@/components/ContourField";
+import { PrivacyPolicy } from "@/components/PrivacyPolicy";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -92,14 +93,20 @@ function Index() {
         </div>
       </div>
 
-      <footer className="pointer-events-none absolute inset-x-0 bottom-0 pb-8">
+      <footer className="pointer-events-none absolute inset-x-0 bottom-0 px-6 pb-8">
         <div
           className="lab-enter font-mono text-[9px] leading-relaxed tracking-[0.3em] text-muted-foreground/70 uppercase"
           style={{ animationDelay: "1100ms" }}
         >
           <p className="text-center">Solace Laboratories Ltd</p>
           <p className="text-center">United Kingdom</p>
-          <p className="mt-2 text-center">© 2026 Solace Laboratories Ltd</p>
+          <p className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            <span>© 2026 Solace Laboratories Ltd</span>
+            <span aria-hidden="true" className="hidden text-muted-foreground/40 sm:inline">
+              ·
+            </span>
+            <PrivacyPolicy />
+          </p>
         </div>
       </footer>
 
