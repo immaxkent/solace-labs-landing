@@ -44,9 +44,22 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+// nitro emits its own .vercel/output/config.json, and that Build Output API config
+// governs routing — `redirects` in vercel.json are ignored. So the www -> apex
+// redirect has to happen here, in the request path we actually control.
+function redirectApex(request: Request): Response | undefined {
+  const url = new URL(request.url);
+  if (!url.hostname.startsWith("www.")) return undefined;
+  url.hostname = url.hostname.slice(4);
+  return Response.redirect(url.toString(), 308);
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const redirect = redirectApex(request);
+      if (redirect) return redirect;
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

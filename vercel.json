@@ -2,13 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
-  "framework": null,
-  "redirects": [
-    {
-      "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.solacelabs.org" }],
-      "destination": "https://solacelabs.org/:path*",
-      "permanent": true
-    }
-  ]
+  "framework": null
 }

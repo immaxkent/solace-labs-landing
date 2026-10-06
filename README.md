@@ -29,8 +29,11 @@ Two pieces of config make this work and are easy to break:
   template defaults to `cloudflare-module`, which produces an output format
   Vercel can't serve. Lovable's own builds ignore this override, so the
   project can still sync back to the Lovable editor.
-- `vercel.json` pins the install and build commands to npm, and redirects
-  `www.solacelabs.org` to the apex domain.
+- `vercel.json` pins the install and build commands to npm. Note that routing
+  keys (`redirects`, `rewrites`, `headers`) do **not** work here: nitro emits
+  its own `.vercel/output/config.json`, and that Build Output API config governs
+  routing instead. The `www` -> apex redirect therefore lives in
+  `src/server.ts`, in the fetch handler.
 
 ## DNS
 
