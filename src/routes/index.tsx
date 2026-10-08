@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ContourField } from "@/components/ContourField";
 import { PrivacyPolicy } from "@/components/PrivacyPolicy";
 
@@ -26,8 +26,55 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+// Apps sits between these two on purpose: collapsing a sibling on each side
+// shrinks the row symmetrically, so Apps stays centred without being moved.
+const WORLDS_LEFT = { label: "FinTech", href: "https://goodpaper.io/worlds/technology" };
+const WORLDS_RIGHT = { label: "Sustainability", href: "https://goodpaper.io/worlds/solace" };
+
+const APPS = [
+  { label: "BigBooth", href: "https://bigbooth.xyz" },
+  { label: "Syndicaite", href: "https://syndicaite.xyz" },
+];
+
+const navItem =
+  "group relative inline-block font-mono text-[10px] font-bold tracking-[0.3em] text-muted-foreground uppercase transition-[color,letter-spacing] duration-500 ease-out hover:tracking-[0.42em] hover:text-foreground";
+
+const navUnderline =
+  "absolute -bottom-1.5 left-1/2 block h-px w-0 -translate-x-1/2 bg-foreground/50 transition-all duration-500 ease-out group-hover:w-full group-hover:bg-foreground/80";
+
 function Index() {
   const [leaving, setLeaving] = useState(false);
+  const [appsOpen, setAppsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!appsOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setAppsOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [appsOpen]);
+
+  // Collapsed siblings keep their box in the layout until the transition ends,
+  // so take them out of the tab order and the accessibility tree meanwhile.
+  const sibling = (link: { label: string; href: string }) => (
+    <span
+      aria-hidden={appsOpen}
+      className={`inline-block transition-all duration-700 ease-out motion-reduce:transition-none ${
+        appsOpen ? "max-w-0 overflow-hidden opacity-0" : "max-w-[14rem] opacity-100"
+      }`}
+    >
+      <a
+        href={link.href}
+        onClick={() => setLeaving(true)}
+        tabIndex={appsOpen ? -1 : undefined}
+        className={navItem}
+      >
+        {link.label}
+        <span className={navUnderline} />
+      </a>
+    </span>
+  );
 
   return (
     <main className="relative min-h-[100svh] overflow-hidden bg-background text-foreground">
@@ -42,27 +89,58 @@ function Index() {
           <p className="text-center">United Kingdom</p>
         </header>
 
-        <nav
-          className="lab-enter mt-12 flex items-baseline justify-center gap-6 sm:gap-8"
+        <div
+          className="lab-enter mt-12 flex w-full flex-col items-center"
           style={{ animationDelay: "260ms" }}
-          aria-label="Worlds"
         >
-          {[
-            { label: "FinTech", href: "https://goodpaper.io/worlds/technology" },
-            { label: "Apps", href: "https://goodpaper.io/worlds/ventures" },
-            { label: "Sustainability", href: "https://goodpaper.io/worlds/solace" },
-          ].map(({ label, href }) => (
-            <a
-              key={label}
-              href={href}
-              onClick={() => setLeaving(true)}
-              className="group relative inline-block font-mono text-[10px] font-bold tracking-[0.3em] text-muted-foreground uppercase transition-[color,letter-spacing] duration-500 ease-out hover:tracking-[0.42em] hover:text-foreground"
+          <nav className="flex items-baseline justify-center gap-6 sm:gap-8" aria-label="Worlds">
+            {sibling(WORLDS_LEFT)}
+
+            <button
+              type="button"
+              onClick={() => setAppsOpen((open) => !open)}
+              aria-expanded={appsOpen}
+              aria-controls="apps-panel"
+              className={`${navItem} cursor-pointer ${appsOpen ? "tracking-[0.42em] text-foreground" : ""}`}
             >
-              {label}
-              <span className="absolute -bottom-1.5 left-1/2 block h-px w-0 -translate-x-1/2 bg-foreground/50 transition-all duration-500 ease-out group-hover:w-full group-hover:bg-foreground/80" />
-            </a>
-          ))}
-        </nav>
+              Apps
+              <span className={`${navUnderline} ${appsOpen ? "w-full bg-foreground/80" : ""}`} />
+            </button>
+
+            {sibling(WORLDS_RIGHT)}
+          </nav>
+
+          <div
+            id="apps-panel"
+            className={`grid w-full transition-all duration-700 ease-out motion-reduce:transition-none ${
+              appsOpen ? "mt-9 grid-rows-[1fr] opacity-100" : "mt-0 grid-rows-[0fr] opacity-0"
+            }`}
+          >
+            <div className="overflow-hidden">
+              <ul className="flex flex-col items-center gap-5">
+                {APPS.map(({ label, href }, index) => (
+                  <li
+                    key={label}
+                    style={{ transitionDelay: appsOpen ? `${180 + index * 130}ms` : "0ms" }}
+                    className={`transition-all duration-500 ease-out motion-reduce:transition-none ${
+                      appsOpen ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"
+                    }`}
+                  >
+                    <a
+                      href={href}
+                      onClick={() => setLeaving(true)}
+                      tabIndex={appsOpen ? undefined : -1}
+                      className={navItem}
+                    >
+                      {label} <span aria-hidden="true">↗</span>
+                      <span className={navUnderline} />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
 
         <h1
           className="lab-enter mt-12 font-mono text-4xl font-medium tracking-tight sm:text-5xl"
